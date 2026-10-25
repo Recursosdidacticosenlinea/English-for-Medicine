@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>English for Medicine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: a study-planner page. Header with the 5-step route every unit follows, then a filterable grid of unit cards grouped by status. */
+:root{
+  --bg:#f3f5fa; --surface:#ffffff; --ink:#14213d; --muted:#56607a; --line:#d9deea;
+  --accent:#1f4fd1; --accent-soft:#e3eafc; --gold:#f2b705; --gold-ink:#5c4300;
+  --new:#0f7a5a; --new-soft:#dcf3ea; --soon:#8a5a00; --soon-soft:#fbefd2;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1424; --surface:#161e33; --ink:#e8ecf6; --muted:#9aa5c0; --line:#2a3552;
+  --accent:#8eabff; --accent-soft:#1f2c52; --gold:#f2c23a; --gold-ink:#f2c23a;
+  --new:#5fd3a9; --new-soft:#123a2e; --soon:#f0c062; --soon-soft:#3a2d10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1424; --surface:#161e33; --ink:#e8ecf6; --muted:#9aa5c0; --line:#2a3552;
+  --accent:#8eabff; --accent-soft:#1f2c52; --gold:#f2c23a; --gold-ink:#f2c23a;
+  --new:#5fd3a9; --new-soft:#123a2e; --soon:#f0c062; --soon-soft:#3a2d10; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto;padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2rem,5vw,3.1rem);line-height:1.05;margin:.35em 0 .3em;text-wrap:balance}
+h1 span{background:linear-gradient(transparent 62%,var(--gold) 62%,var(--gold) 90%,transparent 90%);padding:0 .08em}
+.lead{max-width:62ch;color:var(--muted);font-size:1.08rem;margin:0}
+h2{font-family:var(--display);font-weight:700;font-size:1.45rem;margin:0;text-wrap:balance}
+/* Route */
+.route{margin-top:32px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.route ol{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;counter-reset:s}
+.route li{counter-increment:s;position:relative;padding:12px;border-radius:10px;background:var(--bg);min-width:0}
+.route li::before{content:counter(s);font-family:var(--display);font-weight:800;font-size:1.3rem;color:var(--accent);display:block;line-height:1}
+.route b{display:block;margin-top:6px}
+.route small{color:var(--muted);font-size:.86rem;display:block}
+.skills{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.skills i{font-style:normal;font-size:.74rem;padding:1px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:700}
+.evidence{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.evidence div{border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:.9rem;color:var(--muted)}
+.evidence strong{color:var(--ink)}
+/* Controls */
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:40px 0 18px}
+.controls label{font-weight:700;font-size:.9rem}
+#q{flex:1 1 220px;min-width:0;font:inherit;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.88rem;font-weight:700;padding:7px 13px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+/* Groups & cards */
+.group{margin-top:28px}
+.group-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.group-head .count{color:var(--muted);font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lvl{font-family:var(--display);font-weight:800;font-size:.82rem;padding:3px 9px;border-radius:6px;background:var(--gold);color:#2b2000;letter-spacing:.02em}
+.status{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:99px}
+.st-ready{background:var(--accent-soft);color:var(--accent)}
+.st-progress{background:var(--new-soft);color:var(--new)}
+.st-planned{background:var(--soon-soft);color:var(--soon)}
+.card h3{font-family:var(--display);font-weight:700;font-size:1.2rem;line-height:1.2;margin:4px 0 0;text-wrap:balance}
+.focus{color:var(--muted);font-size:.93rem;margin:0}
+.subject{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:0}
+.num{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.8rem;font-weight:700}
+.card .go{margin-top:auto;padding-top:8px}
+.card a.btn{display:inline-block;font-weight:700;text-decoration:none;color:var(--surface);background:var(--accent);padding:8px 14px;border-radius:9px}
+.card a.btn:hover{filter:brightness(1.08)}
+.card .pending{font-size:.88rem;color:var(--muted);font-style:italic}
+.empty{color:var(--muted);padding:20px;border:1px dashed var(--line);border-radius:12px;text-align:center}
+footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+@media (max-width:760px){.route ol{grid-template-columns:repeat(2,minmax(0,1fr))}.route li:last-child{grid-column:1/-1}.evidence{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .15s ease,border-color .15s}.card:hover{transform:translateY(-2px);border-color:var(--accent)}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">CAA Virtual · BUAP · English for Specific Purposes · A1–B1</div>
+    <h1>English for <span>Medicine</span></h1>
+    <p class="lead">Practice English with the topics of your medical degree: anatomy, physiology, the clinical history, pharmacology, public health, research and more. Choose a unit, follow the five steps, and check what you can do at the end. Every unit takes about 50–60 minutes.</p>
+  </header>
+
+  <section class="route" aria-labelledby="route-h">
+    <h2 id="route-h">How every unit works</h2>
+    <ol>
+      <li><b>Presentation</b><small>Meet the topic in a real situation.</small></li>
+      <li><b>Objectives</b><small>See what you will be able to do.</small></li>
+      <li><b>Explanation</b><small>Vocabulary, grammar and examples.</small></li>
+      <li><b>Practice</b><small>Four skills:</small><span class="skills"><i>Listening</i><i>Reading</i><i>Writing</i><i>Speaking</i></span></li>
+      <li><b>Self-assessment</b><small>Rate six "I can…" statements from 1 to 5.</small></li>
+    </ol>
+    <div class="evidence">
+      <div><strong>Writing evidence:</strong> write and submit your text directly in the unit.</div>
+      <div><strong>Speaking evidence:</strong> record your task and upload it to your course platform.</div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <label for="q">Find a unit</label>
+    <input id="q" type="search" placeholder="Try “anatomy”, “patient” or “past”" autocomplete="off">
+    <div class="chips" role="group" aria-label="Filter by level" id="levels"></div>
+  </div>
+
+  <main id="list"></main>
+
+  <footer>CAA Virtual · BUAP · English for Medicine students · Your progress is saved on this device only.</footer>
+</div>
+
+<script>
+/* ===== Units on the home page =====
+   To add a unit: copy the _template folder, rename it (e.g. "my-new-unit"),
+   edit its data.js, then add one line here with url: "my-new-unit/" and the subject of the degree it connects to.
+   isNew: true shows a "New" label. */
+const UNITS = [
+  {title:"Meet the Body",             subject:"Integral Anatomy",                      focus:"Parts of the body, have / has, this / these, singular and plural",  level:"A1", url:"meet-the-body/"},
+  {title:"Inside the Cell",           subject:"Cell Biology",                          focus:"There is / there are, prepositions of place, parts of a cell",      level:"A1", url:"inside-the-cell/"},
+  {title:"Safety First in the Lab",   subject:"Biochemistry Laboratory",               focus:"Imperatives, can / can't, lab equipment and safety rules",          level:"A1", url:"safety-first-in-the-lab/"},
+  {title:"A Day at Med School",       subject:"Medical Psychology",                    focus:"Present simple, daily routines, adverbs of frequency, wellbeing",   level:"A1", url:"a-day-at-med-school/"},
+  {title:"How Does It Work?",         subject:"Physiology",                            focus:"Present simple (he / she / it) to describe organs and functions",  level:"A1", url:"how-does-it-work/"},
+  {title:"Where Does It Hurt?",       subject:"Clinical Propaedeutics",                focus:"Past simple and questions to take a patient's history",             level:"A2", url:"where-does-it-hurt/"},
+  {title:"Bugs and Germs",            subject:"Microbiology and Virology",             focus:"Comparatives and superlatives: bacteria, viruses and fungi",        level:"A2", url:"bugs-and-germs/"},
+  {title:"A Healthy Plate",           subject:"Medical Nutrition",                     focus:"Countable / uncountable, some / any, how much / how many",          level:"A2", url:"a-healthy-plate/"},
+  {title:"Take Two a Day",            subject:"Pharmacology",                          focus:"Should / shouldn't, frequency and dosage instructions",             level:"A2", url:"take-two-a-day/"},
+  {title:"On the Ward",               subject:"Clinical Practice I",                   focus:"Present continuous vs. present simple to report a patient's status", level:"A2", url:"on-the-ward/"},
+  {title:"Prevention Is Better",      subject:"Public Health and Epidemiology",        focus:"First conditional and will for health campaigns",                   level:"B1", url:"prevention-is-better/"},
+  {title:"The Case Presentation",     subject:"Internal Medicine",                     focus:"Present perfect with for / since vs. past simple",                  level:"B1", url:"the-case-presentation/"},
+  {title:"Informed Consent",          subject:"Bioethics and Human Rights",            focus:"Must, have to, don't have to, should; patients' rights",            level:"B1", url:"informed-consent/"},
+  {title:"What the Study Found",      subject:"Research Methodology and Biostatistics", focus:"Passive voice (present and past) to describe methods and results", level:"B1", url:"what-the-study-found/"},
+  {title:"Code Red in the ER",        subject:"Emergency Medicine",                    focus:"Past continuous vs. past simple to report an emergency",            level:"B1", url:"code-red-in-the-er/"}
+];
+
+const GROUPS = [
+  {key:"A1", name:"Level A1", note:"First steps"},
+  {key:"A2", name:"Level A2", note:"First clinical situations"},
+  {key:"B1", name:"Level B1", note:"Getting independent"}
+];
+const LEVELS = ["All","A1","A2","B1"];
+let level = "All";
+
+const chipsEl = document.getElementById("levels");
+LEVELS.forEach(l=>{
+  const b=document.createElement("button");
+  b.className="chip"; b.type="button"; b.textContent=l; b.id="lvl-"+l;
+  b.setAttribute("aria-pressed", l===level ? "true":"false");
+  b.addEventListener("click",()=>{level=l;[...chipsEl.children].forEach(c=>c.setAttribute("aria-pressed",c.textContent===l?"true":"false"));render();});
+  chipsEl.appendChild(b);
+});
+document.getElementById("q").addEventListener("input",render);
+
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function done(u){ try { const s=JSON.parse(localStorage.getItem("med:"+u.url.replace(/\/$/,""))||"{}"); return s.self && Object.keys(s.self).length>=6; } catch(e){ return false; } }
+
+function render(){
+  const q=document.getElementById("q").value.trim().toLowerCase();
+  const list=document.getElementById("list"); list.innerHTML="";
+  let shown=0;
+  GROUPS.forEach(g=>{
+    const items=UNITS.map((u,i)=>({...u,n:i+1})).filter(u=>u.level===g.key
+      && (level==="All"||u.level.includes(level))
+      && (!q || (u.title+" "+u.subject+" "+u.focus).toLowerCase().includes(q)));
+    if(!items.length) return;
+    shown+=items.length;
+    const sec=document.createElement("section"); sec.className="group";
+    sec.innerHTML=`<div class="group-head"><h2>${g.name}</h2><span class="count">${g.note} · ${items.length} unit${items.length>1?"s":""}</span></div>`;
+    const grid=document.createElement("div"); grid.className="grid";
+    items.forEach(u=>{
+      const badge = done(u) ? `<span class="status st-progress">Completed</span>` : (u.isNew ? `<span class="status st-planned">New</span>` : "");
+      const go = u.url ? `<a class="btn" href="${esc(u.url)}">Start unit →</a>` : `<span class="pending">Not available yet</span>`;
+      grid.insertAdjacentHTML("beforeend",
+        `<article class="card"><div class="top"><span class="lvl">${u.level}</span>${badge}</div>
+         <p class="subject">${esc(u.subject||"")}</p><h3>${esc(u.title)}</h3><p class="focus">${esc(u.focus)}</p><div class="go">${go}</div></article>`);
+    });
+    sec.appendChild(grid); list.appendChild(sec);
+  });
+  if(!shown) list.innerHTML=`<p class="empty">No units match. Try another word or choose “All”.</p>`;
+}
+render();
+</script>
+</body>
+</html>
